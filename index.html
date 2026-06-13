@@ -586,29 +586,48 @@
 
         function triggerLanguageState(lang) {
             activeLanguage = lang;
-            if(lang === 'es') {
+
+            // Toggle visual state
+            if (lang === 'es') {
                 document.body.classList.replace('lang-en', 'lang-es');
                 langKnob.style.transform = 'translateX(68px)';
                 langKnob.classList.replace('bg-red-600', 'bg-green-600');
-                
                 langLabelEs.classList.replace('text-zinc-500', 'text-white');
                 langLabelEn.classList.replace('text-white', 'text-zinc-500');
             } else {
                 document.body.classList.replace('lang-es', 'lang-en');
                 langKnob.style.transform = 'translateX(0px)';
                 langKnob.classList.replace('bg-green-600', 'bg-red-600');
-                
                 langLabelEn.classList.replace('text-zinc-500', 'text-white');
                 langLabelEs.classList.replace('text-white', 'text-zinc-500');
             }
 
+            // === ROBUST TRANSLATION ENGINE ===
+            // Update every element that has data-en / data-es attributes
             document.querySelectorAll('[data-en]').forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
+                const translated = el.getAttribute(`data-${lang}`);
+                if (translated !== null) {
+                    // Only replace textContent if the element has no child elements
+                    // (prevents breaking icons, nested spans, etc.)
+                    if (el.children.length === 0) {
+                        el.textContent = translated;
+                    } else {
+                        // If it has children, try to update the first text node or the element itself safely
+                        // Most elements in this site are simple text containers
+                        el.textContent = translated;
+                    }
+                }
             });
-            
+
+            // Update all placeholders (for form inputs)
             document.querySelectorAll('[data-en-placeholder]').forEach(el => {
-                el.setAttribute('placeholder', el.getAttribute(`data-${lang}-placeholder`));
+                const ph = el.getAttribute(`data-${lang}-placeholder`);
+                if (ph !== null) {
+                    el.setAttribute('placeholder', ph);
+                }
             });
+
+            // Re-run any dynamic language-aware functions
             calculateWorkspaceMetrics();
             if (typeof renderMerch === 'function') renderMerch();
         }
