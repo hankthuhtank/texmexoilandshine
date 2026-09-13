@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#050506">
+    <meta name="description" content="Mobile detailing, oil-change labor and tire rotation in Paris, Texas and nearby areas. Tex-Mex Oil & Shine comes to you.">
 
     <!-- === SOCIAL PREVIEW / OPEN GRAPH === -->
     <meta property="og:type" content="website">
@@ -29,11 +31,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="hero-rain-bg.jpg" fetchpriority="high">
+    <!-- raindrop-fx (MIT) - https://github.com/SardineFish/raindrop-fx -->
+    <!-- NOT deferred: deferred scripts run after inline scripts, so the hero
+         code below would have found RaindropFX undefined and silently bailed -->
+    <script src="raindrop-fx.js"></script>
     
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Barlow', system-ui, sans-serif;
             background-color: #030303;
         }
         .heading-font {
@@ -46,17 +53,6 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
-        /* Interactive Detailing Canvas Engine Style */
-        #detailingCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.5;
-        }
 
         /* FLYER CROP CALIBRATION */
         .flyer-crop-container {
@@ -139,123 +135,409 @@
         ::-webkit-scrollbar-track { background: #030303; }
         ::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+
+
+        /* ===== 2026 DARK AUTOMOTIVE REFRESH ===== */
+        :root {
+            --ink: #050506;
+            --panel: rgba(12, 12, 14, .86);
+            --line: rgba(255, 255, 255, .085);
+            --muted: #a1a1aa;
+            --brand: #dc2626;
+            --brand-bright: #ef4444;
+            /* sampled straight off the hero photo */
+            --lamp: #dfaa69;      /* garage sodium light */
+            --sign-red: #85171a;  /* painted shield red  */
+        }
+        html { background: var(--ink); }
+        body {
+            color: #f4f4f5;
+            background:
+                radial-gradient(circle at 82% 9%, rgba(127,29,29,.10), transparent 26rem),
+                linear-gradient(#050506, #08080a 42%, #040405 100%);
+        }
+        .glass-panel {
+            background: rgba(10,10,12,.84);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-color: var(--line);
+            box-shadow: 0 18px 70px rgba(0,0,0,.28);
+        }
+        .site-nav {
+            background: rgba(4,4,5,.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            /* no border-bottom: that 1px rgba(255,255,255,.085) hairline was the
+               white line sitting across the top of the hero photo on mobile.
+               A soft drop shadow separates the bar without drawing a line. */
+            box-shadow: 0 14px 34px rgba(0,0,0,.55);
+        }
+        .brand-logo {
+            width: 80px;
+            height: 58px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
+        }
+        @media (max-width: 640px) {
+            .brand-logo { width: 68px; height: 50px; }
+        }
+        /* ===================================================================
+           HERO  ·  curbside at night
+           ONE framing rule for every screen. The photo is cover-fitted
+           around a focal point held in --hero-fx / --hero-fy. The CSS
+           layer and the WebGL layer both read those two numbers, so the
+           two can never drift apart the way a hand-tuned
+           background-position and a hand-tuned shader rect always do.
+             phone / tablet : photo is a band in the flow, copy sits below
+             desktop        : photo is full bleed, copy sits in the dark
+                              left plate that is already in the picture
+           =================================================================== */
+        .hero-shell {
+            position: relative;
+            isolation: isolate;
+            border-bottom: 1px solid var(--line);
+        }
+        .hero-media {
+            position: relative;
+            width: 100%;
+            margin-top: 80px;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            background: #050506;
+            /* phone: fill the 4:3 band, focus on the truck */
+            --hero-fit: cover;
+            --hero-top: 0px;
+            --hero-size: cover;
+            --hero-pos: 62% 45%;
+            --hero-fx: 62%;
+            --hero-fy: 45%;
+        }
+        .hero-photo {
+            position: absolute;
+            inset: 0;
+            background-color: #050506;
+            background-image: url('hero-rain-bg.jpg');
+            background-repeat: no-repeat;
+            background-size: var(--hero-size);
+            background-position: var(--hero-pos);
+        }
+        #rainCanvas {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        #rainCanvas.is-live { opacity: 1; }
+        .hero-veil {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg,
+                rgba(4,4,5,.48) 0%,
+                rgba(4,4,5,0) 20%,
+                rgba(4,4,5,.06) 68%,
+                rgba(4,4,5,.97) 100%);
+        }
+        .hero-body {
+            position: relative;
+            z-index: 2;
+            margin-top: -2rem;
+            padding-bottom: 3.25rem;
+        }
+        .hero-place {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            color: #e9ddc7;
+            font-size: .85rem;
+            font-weight: 600;
+        }
+        .hero-place i { color: var(--lamp); }
+        .hero-title {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -.015em;
+            line-height: .93;
+            font-size: clamp(1.8rem, 7.9vw, 3.9rem);
+            /* drop-shadow, not text-shadow: the second line is background-clipped
+               text, and text-shadow would show straight through the glyphs */
+            filter: drop-shadow(0 5px 26px rgba(0,0,0,.85));
+        }
+        .hero-title .culture-gradient {
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        .hero-lede {
+            max-width: 46ch;
+            text-shadow: 0 3px 22px rgba(0,0,0,.8);
+        }
+        @media (min-width: 640px) {
+            .hero-media {
+                aspect-ratio: 16 / 9;
+                --hero-pos: 60% 40%;
+                --hero-fx: 60%;
+                --hero-fy: 40%;
+            }
+        }
+        @media (min-width: 1024px) {
+            .hero-shell {
+                /* The photo is 1672x941. Give it a stage of exactly that shape,
+                   capped at 1600px and CENTRED, then derive the section height
+                   from it. Nothing is ever cropped, and the picture sits in the
+                   middle of the page instead of being shoved against the right
+                   edge with a field of black on the left. */
+                --hero-w: min(100vw, 1600px);
+                --hero-top: 80px;
+                display: flex;
+                align-items: center;
+                min-height: calc(var(--hero-w) / 1.777 + var(--hero-top));
+                padding-top: 80px;
+                overflow: hidden;
+            }
+            .hero-media {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 50%;
+                width: var(--hero-w);
+                transform: translateX(-50%);
+                margin-top: 0;
+                aspect-ratio: auto;
+                --hero-fit: height;
+                /* bottom-anchored and short by the nav height, so the top of the
+                   shield sign clears the bar instead of hiding behind it */
+                --hero-size: auto calc(100% - 80px);
+                --hero-pos: center bottom;
+            }
+            .hero-veil {
+                background:
+                    /* first and last stops feather the stage edges into the page ink,
+                       so the photo does not stop against a hard vertical seam on wide screens */
+                    linear-gradient(90deg, rgba(5,5,6,1) 0%, rgba(3,3,4,.95) 7%, rgba(3,3,4,.92) 30%, rgba(3,3,4,.70) 48%, rgba(3,3,4,.12) 72%, rgba(3,3,4,.30) 95%, rgba(5,5,6,1) 100%),
+                    linear-gradient(0deg, rgba(4,4,5,.88) 0%, transparent 22%);
+            }
+            .hero-body {
+                width: 100%;
+                margin-top: 0;
+                padding-bottom: 0;
+            }
+        }
+        .service-strip {
+            position: relative;
+            z-index: 12;
+            margin-top: -38px;
+        }
+        .service-strip-inner {
+            background: rgba(8,8,10,.94);
+            border: 1px solid var(--line);
+            box-shadow: 0 22px 60px rgba(0,0,0,.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+        .strip-item + .strip-item { border-left: 1px solid var(--line); }
+        .service-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(17,17,20,.94), rgba(8,8,10,.94));
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 16px 50px rgba(0,0,0,.22);
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #ef4444, rgba(220,38,38,.08));
+        }
+        .service-row + .service-row { border-top: 1px solid rgba(255,255,255,.065); }
+        .service-price { color: #f4f4f5; font-family: 'Oswald', sans-serif; white-space: nowrap; }
+        .section-label {
+            color: #ef4444;
+            font-size: .68rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+        .soft-grid {
+            background-image:
+                linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        #services, #package-builder, #shop { scroll-margin-top: 90px; }
+        input, button, a { -webkit-tap-highlight-color: transparent; }
+        input:focus-visible, button:focus-visible, a:focus-visible {
+            outline: 2px solid rgba(239,68,68,.9);
+            outline-offset: 3px;
+        }
+        @media (max-width: 767px) {
+            .brand-logo { width: 58px; height: 40px; }
+            .service-strip { margin-top: -18px; }
+            .strip-item + .strip-item { border-left: 0; border-top: 1px solid var(--line); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #rainCanvas { display: none; }
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .001ms !important; animation-duration: .001ms !important; }
+        }
     </style>
 </head>
 <body class="text-zinc-100 overflow-x-hidden lang-en">
 
-    <canvas id="detailingCanvas"></canvas>
-
-    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-zinc-900/60">
+    <nav class="site-nav fixed top-0 left-0 w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black text-base border border-white/10 shadow-lg">
-                    <span class="text-white heading-font text-lg">T</span><span class="text-zinc-200 heading-font text-lg">M</span>
+            <a href="#top" class="flex items-center gap-3 min-w-0" aria-label="Tex-Mex Oil & Shine home">
+                <img src="logo.png" alt="Tex-Mex Oil & Shine" class="brand-logo">
+                <div class="hidden sm:block leading-tight">
+                    <span class="block text-[11px] font-black tracking-[0.18em] text-white uppercase">Tex-Mex Oil & Shine</span>
+                    <span class="block text-[9px] text-zinc-500 font-bold tracking-[0.14em] mt-1 uppercase" data-en="Mobile Auto Care" data-es="Cuidado Automotriz Móvil">Mobile Auto Care</span>
                 </div>
-                <div>
-                    <span class="block text-xl font-bold tracking-tight text-white uppercase heading-font leading-none">Tex-Mex</span>
-                    <span class="block text-[9px] text-zinc-500 font-bold tracking-widest mt-0.5 uppercase">Oil & Shine</span>
-                </div>
+            </a>
+
+            <div class="hidden lg:flex items-center gap-7 font-bold text-[11px] tracking-[0.13em] uppercase text-zinc-400">
+                <a href="#services" class="hover:text-white transition-colors" data-en="Services" data-es="Servicios">Services</a>
+                <a href="#package-builder" class="hover:text-white transition-colors" data-en="Build a Package" data-es="Arma Tu Paquete">Build a Package</a>
+                <a href="#shop" class="hover:text-white transition-colors" data-en="Shop Tees" data-es="Playeras">Shop Tees</a>
             </div>
 
-            <div class="hidden md:flex items-center gap-8 font-bold text-xs tracking-widest uppercase">
-                <a href="#services" class="hover:text-red-500 transition-colors" data-en="Service Menu" data-es="Menú de Servicios">Service Menu</a>
-                <a href="#package-builder" class="hover:text-red-500 transition-colors" data-en="Package Builder" data-es="Constructor de Paquetes">Package Builder</a>
-                <a href="#shop" class="hover:text-red-500 transition-colors" data-en="Shop Tees" data-es="Tienda de Playeras">Shop Tees</a>
-            </div>
-
-            <div class="flex items-center gap-4">
-                <button id="langToggle" class="relative flex items-center bg-zinc-950 rounded-xl p-1 border border-zinc-800 cursor-pointer focus:outline-none" aria-label="Change Language">
-                    <div id="langKnob" class="absolute top-1 bottom-1 left-1 w-[68px] bg-red-600 rounded-lg transition-all duration-300 z-0"></div>
-                    <span id="langLabelEn" class="relative z-10 px-3 py-1.5 text-[10px] font-extrabold tracking-wider uppercase text-white select-none w-[68px] text-center transition-colors">English</span>
-                    <span id="langLabelEs" class="relative z-10 px-3 py-1.5 text-[10px] font-extrabold tracking-wider uppercase text-zinc-500 select-none w-[68px] text-center transition-colors">Español</span>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="langToggle" class="relative flex items-center bg-zinc-950 rounded-lg p-1 border border-white/10 cursor-pointer focus:outline-none" aria-label="Change language">
+                    <div id="langKnob" class="absolute top-1 bottom-1 left-1 w-[61px] bg-red-600 rounded-md transition-all duration-300 z-0"></div>
+                    <span id="langLabelEn" class="relative z-10 px-2 py-1.5 text-[9px] font-extrabold tracking-wider uppercase text-white select-none w-[61px] text-center transition-colors">English</span>
+                    <span id="langLabelEs" class="relative z-10 px-2 py-1.5 text-[9px] font-extrabold tracking-wider uppercase text-zinc-500 select-none w-[61px] text-center transition-colors">Español</span>
                 </button>
-                
-                <a href="tel:90340119361" class="hidden sm:flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 h-11 rounded-xl text-xs font-bold text-white hover:bg-zinc-800 transition-all">
-                    <i class="fa-solid fa-phone text-red-500"></i> <span>903.401.9361</span>
+                <a href="tel:9034019361" class="hidden md:flex items-center gap-2 bg-white text-black px-4 h-10 rounded-lg text-[11px] font-extrabold hover:bg-zinc-200 transition-all">
+                    <i class="fa-solid fa-phone text-red-600"></i><span>903.401.9361</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <section class="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-12">
-            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-                <div class="inline-flex items-center gap-2 bg-zinc-900/90 border border-zinc-800 px-4 py-2 rounded-full text-zinc-400 text-xs font-bold tracking-wider">
-                    <i class="fa-solid fa-location-dot text-red-500"></i> Paris, Texas & Surrounding Areas
-                </div>
-                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none text-white uppercase heading-font">
-                    <span data-en="We Come To You!" data-es="¡Vamos A Ti!">We Come To You!</span><br>
-                    <span class="culture-gradient" data-en="You Don't Come To Us." data-es="Tú No Vienes A Nosotros.">You Don't Come To Us.</span>
-                </h1>
-                <p class="text-base sm:text-lg text-zinc-400 max-w-xl mx-auto lg:mx-0 font-medium" data-en="Premium mobile detailing and driveway vehicle care. Owned and operated by Jerred Guerra." data-es="Detallado móvil de primera y cuidado automotriz a domicilio. Propiedad y operación de Jerred Guerra.">
-                    Premium mobile detailing and driveway vehicle care. Owned and operated by Jerred Guerra.
-                </p>
+    <section id="top" class="hero-shell z-10">
+        <div class="hero-media">
+            <div class="hero-photo" aria-hidden="true"></div>
+            <canvas id="rainCanvas" aria-hidden="true"></canvas>
+            <div class="hero-veil" aria-hidden="true"></div>
+        </div>
 
-                <div class="inline-flex items-center gap-4 p-4 bg-zinc-900/60 rounded-2xl border border-zinc-800 max-w-md shadow-xl text-left backdrop-blur-md">
-                    <div class="w-12 h-12 rounded-xl bg-red-600/10 border border-red-500/20 flex items-center justify-center text-red-500 text-xl shrink-0"><i class="fa-solid fa-snowflake"></i></div>
-                    <div>
-                        <span class="block font-extrabold text-xs text-red-500 uppercase tracking-wider" data-en="Complimentary Upgrade" data-es="Mejora de Cortesía">Complimentary Upgrade</span>
-                        <span class="block text-sm font-semibold text-zinc-200 mt-0.5" data-en="Get a free custom koozie with every detail. Keep your drink ice-cold while your ride gets a premium spa day." data-es="Llévate un koozie personalizado gratis con cada servicio. Mantén tu bebida fría mientras consentimos tu auto.">Get a free custom koozie with every detail. Keep your drink ice-cold while your ride gets a premium spa day.</span>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-                    <a href="#package-builder" class="w-full sm:w-auto text-center bg-red-600 text-white hover:bg-red-500 px-8 py-4 rounded-xl font-extrabold uppercase tracking-wider text-xs transition-all duration-200">
-                        <span data-en="Build Your Custom Package" data-es="Construye Tu Paquete Personalizado">Build Your Custom Package</span>
+        <div class="hero-body max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="max-w-3xl">
+                <p class="hero-place" data-en="Paris, Texas and surrounding areas" data-es="Paris, Texas y áreas cercanas"><i class="fa-solid fa-location-dot"></i>Paris, Texas and surrounding areas</p>
+
+                <h1 class="hero-title mt-4 text-white">
+                    <span data-en="We Come To You!" data-es="¡Nosotros Vamos A Ti!">We Come To You!</span><br>
+                    <span class="culture-gradient" data-en="You Don't Come To Us." data-es="Tú No Tienes Que Venir.">You Don't Come To Us.</span>
+                </h1>
+
+                <p class="hero-lede mt-5 text-base sm:text-lg text-zinc-300 leading-relaxed" data-en="Mobile detailing, oil change labor and tire rotation. Owned and operated by Jerred Guerra." data-es="Detallado móvil, mano de obra para cambio de aceite y rotación de llantas. Propiedad y operación de Jerred Guerra.">Mobile detailing, oil change labor and tire rotation. Owned and operated by Jerred Guerra.</p>
+
+                <div class="flex flex-col sm:flex-row gap-3 mt-8 max-w-xl">
+                    <a href="#package-builder" class="text-center bg-red-600 text-white hover:bg-red-500 px-7 py-4 rounded-lg font-extrabold uppercase tracking-[0.12em] text-[11px] transition-all shadow-[0_12px_40px_rgba(220,38,38,.18)]">
+                        <span data-en="Build Your Package" data-es="Arma Tu Paquete">Build Your Package</span>
                     </a>
-                    <a href="#shop" class="w-full sm:w-auto text-center bg-zinc-900 border border-zinc-800 text-white hover:bg-zinc-800 px-8 py-4 rounded-xl font-extrabold uppercase tracking-wider text-xs transition-all duration-200">
-                        <span data-en="Shop The Tees" data-es="Ver Las Playeras">Shop The Tees</span>
+                    <a href="sms:+19034019361" class="text-center bg-white/5 border border-white/15 text-white hover:bg-white/10 px-7 py-4 rounded-lg font-extrabold uppercase tracking-[0.12em] text-[11px] transition-all backdrop-blur-md">
+                        <i class="fa-solid fa-comment-sms text-red-500 mr-2"></i><span data-en="Call or Text Jerred" data-es="Llama o Escríbele a Jerred">Call or Text Jerred</span>
                     </a>
-                </div>
-            </div>
-            
-            <div class="lg:col-span-5 relative w-full max-w-md mx-auto">
-                <div class="relative glass-panel p-2.5 rounded-3xl border border-zinc-800 shadow-2xl">
-                    <div class="flyer-crop-container">
-                        <img id="flyerAsset" src="image.png" alt="Tex-Mex Premium Pricing Sheet" class="flyer-target-img" onerror="this.src='image_fc00e4.jpg'">
-                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="services" class="py-24 bg-zinc-950/40 relative border-t border-zinc-900 z-10 backdrop-blur-sm">
+    <div class="service-strip px-4 sm:px-6 lg:px-8">
+        <div class="service-strip-inner max-w-5xl mx-auto rounded-2xl grid grid-cols-1 sm:grid-cols-3 overflow-hidden">
+            <div class="strip-item px-6 py-5 flex items-center gap-4">
+                <i class="fa-solid fa-spray-can-sparkles text-red-500 text-lg"></i>
+                <div><div class="text-xs font-extrabold text-white" data-en="Interior + Exterior" data-es="Interior + Exterior">Interior + Exterior</div><div class="text-[10px] text-zinc-500 mt-1" data-en="From quick upkeep to deep detail" data-es="Desde mantenimiento rápido hasta detallado profundo">From quick upkeep to deep detail</div></div>
+            </div>
+            <div class="strip-item px-6 py-5 flex items-center gap-4">
+                <i class="fa-solid fa-oil-can text-red-500 text-lg"></i>
+                <div><div class="text-xs font-extrabold text-white" data-en="Oil Change Labor" data-es="Mano de Obra: Cambio de Aceite">Oil Change Labor</div><div class="text-[10px] text-zinc-500 mt-1" data-en="Standard, blend or full synthetic" data-es="Convencional, mezcla o sintético completo">Standard, blend or full synthetic</div></div>
+            </div>
+            <div class="strip-item px-6 py-5 flex items-center gap-4">
+                <i class="fa-solid fa-rotate text-red-500 text-lg"></i>
+                <div><div class="text-xs font-extrabold text-white" data-en="Tire Rotation" data-es="Rotación de Llantas">Tire Rotation</div><div class="text-[10px] text-zinc-500 mt-1" data-en="Available with service or by itself" data-es="Disponible con otro servicio o por separado">Available with service or by itself</div></div>
+            </div>
+        </div>
+    </div>
+
+    <section id="services" class="py-24 relative z-10 soft-grid border-b border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight uppercase heading-font text-white" data-en="Standard Price Menu" data-es="Menú de Precios Estándar">Standard Price Menu</h2>
-                <p class="text-zinc-400 text-sm" data-en="Clear, high-contrast structural prices for reference. Select your custom mix directly in the builder below." data-es="Precios de referencia claros y de alto contraste. Selecciona tus opciones en el constructor de abajo.">Clear, high-contrast structural prices for reference. Select your custom mix directly in the builder below.</p>
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+                <div class="max-w-2xl">
+                    <div class="section-label mb-3" data-en="Straightforward Pricing" data-es="Precios Claros">Straightforward Pricing</div>
+                    <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight uppercase heading-font text-white" data-en="Choose Your Level of Clean" data-es="Elige Tu Nivel de Limpieza">Choose Your Level of Clean</h2>
+                    <p class="text-zinc-400 text-sm mt-4 leading-relaxed" data-en="No overloaded menu. Pick the level that fits your vehicle, then use the package builder for a quick estimate." data-es="Sin menús complicados. Elige el nivel que necesita tu vehículo y usa el configurador para obtener un estimado rápido.">No overloaded menu. Pick the level that fits your vehicle, then use the package builder for a quick estimate.</p>
+                </div>
+                <a href="image.png" target="_blank" class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[.14em] font-extrabold text-zinc-300 hover:text-white transition-colors">
+                    <i class="fa-regular fa-file-image text-red-500"></i><span data-en="View Full Price Sheet" data-es="Ver Lista Completa de Precios">View Full Price Sheet</span>
+                </a>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="glass-panel p-8 rounded-2xl space-y-6 border-t-2 border-zinc-800">
-                    <h3 class="text-xl font-extrabold uppercase tracking-tight heading-font text-red-500" data-en="Interior Details" data-es="Detalles Interiores">Interior Details</h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="border-b border-zinc-900/60 pb-3"><div class="flex justify-between font-bold text-white"><span>Basic</span> <span>Cars $75 / Trucks $85</span></div><p class="text-xs text-zinc-500 mt-1">Vacuum, dash, console, glass, door panels, cup holders.</p></div>
-                        <div class="border-b border-zinc-900/60 pb-3"><div class="flex justify-between font-bold text-white"><span>Deep Clean</span> <span>Cars $110 / Trucks $130</span></div><p class="text-xs text-zinc-500 mt-1">Carpet & seat shampoo, heavy stain treatment, vent blowout.</p></div>
-                        <div><div class="flex justify-between font-bold text-white"><span>Premium</span> <span>Cars $180 / Trucks $200</span></div><p class="text-xs text-zinc-500 mt-1">Extraction, leather treatment, deep conditioning, full odor extraction.</p></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <article class="service-card p-7">
+                    <div class="flex items-center justify-between gap-4 mb-5">
+                        <h3 class="text-2xl font-extrabold uppercase heading-font text-white" data-en="Interior" data-es="Interior">Interior</h3>
+                        <i class="fa-solid fa-car-side text-red-500"></i>
                     </div>
-                </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Basic Interior" data-es="Interior Básico">Basic Interior</span><span class="service-price">$75 / $85</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Vacuum, dash and console wipe-down, door panels, cup holders and interior glass." data-es="Aspirado, limpieza de tablero y consola, paneles de puertas, portavasos y vidrios interiores.">Vacuum, dash and console wipe-down, door panels, cup holders and interior glass.</p>
+                    </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Deep Interior" data-es="Interior Profundo">Deep Interior</span><span class="service-price">$110 / $130</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Everything in Basic plus carpet and seat shampoo, stain treatment and vent cleaning." data-es="Todo lo del Básico más shampoo en alfombras y asientos, tratamiento de manchas y limpieza de ventilas.">Everything in Basic plus carpet and seat shampoo, stain treatment and vent cleaning.</p>
+                    </div>
+                    <div class="service-row pt-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Premium Interior" data-es="Interior Premium">Premium Interior</span><span class="service-price">$180 / $200</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Deep extraction, leather cleaning and conditioning, heavy stain removal and odor treatment." data-es="Extracción profunda, limpieza y acondicionamiento de cuero, eliminación de manchas difíciles y tratamiento de olores.">Deep extraction, leather cleaning and conditioning, heavy stain removal and odor treatment.</p>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-5" data-en="Cars / Trucks & SUVs" data-es="Autos / Camionetas y SUVs">Cars / Trucks & SUVs</p>
+                </article>
 
-                <div class="glass-panel p-8 rounded-2xl space-y-6 border-t-2 border-zinc-800">
-                    <h3 class="text-xl font-extrabold uppercase tracking-tight heading-font text-red-500" data-en="Exterior Details" data-es="Detalles Exteriores">Exterior Details</h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="border-b border-zinc-900/60 pb-3"><div class="flex justify-between font-bold text-white"><span>Basic Wash</span> <span>Cars $55 / Trucks $65</span></div><p class="text-xs text-zinc-500 mt-1">Hand wash, wheel clean, premium tire shine, exterior glass.</p></div>
-                        <div class="border-b border-zinc-900/60 pb-3"><div class="flex justify-between font-bold text-white"><span>Standard Wax</span> <span>Cars $110 / Trucks $130</span></div><p class="text-xs text-zinc-500 mt-1">Basic wash + hand wax application and complete trim restoration wipe.</p></div>
-                        <div><div class="flex justify-between font-bold text-white"><span>Premium Elite</span> <span>Cars $200 / Trucks $230</span></div><p class="text-xs text-zinc-500 mt-1">Clay bar processing, iron decontamination, long-lasting surface protective sealant.</p></div>
+                <article class="service-card p-7">
+                    <div class="flex items-center justify-between gap-4 mb-5">
+                        <h3 class="text-2xl font-extrabold uppercase heading-font text-white" data-en="Exterior" data-es="Exterior">Exterior</h3>
+                        <i class="fa-solid fa-droplet text-red-500"></i>
                     </div>
-                </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Basic Exterior" data-es="Exterior Básico">Basic Exterior</span><span class="service-price">$55 / $65</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Hand wash, wheel cleaning, tire shine and exterior windows." data-es="Lavado a mano, limpieza de rines, brillo de llantas y vidrios exteriores.">Hand wash, wheel cleaning, tire shine and exterior windows.</p>
+                    </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Standard Exterior" data-es="Exterior Estándar">Standard Exterior</span><span class="service-price">$110 / $130</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Basic wash plus hand wax, trim wipe-down and wheel-well cleaning." data-es="Lavado básico más cera a mano, limpieza de molduras y limpieza de los pasos de rueda.">Basic wash plus hand wax, trim wipe-down and wheel-well cleaning.</p>
+                    </div>
+                    <div class="service-row pt-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Premium Exterior" data-es="Exterior Premium">Premium Exterior</span><span class="service-price">$200 / $230</span></div>
+                        <p class="text-xs text-zinc-500 mt-2 leading-relaxed" data-en="Clay-bar treatment, paint decontamination, premium wax or sealant and deep wheel cleaning." data-es="Tratamiento con clay bar, descontaminación de pintura, cera o sellador premium y limpieza profunda de rines.">Clay-bar treatment, paint decontamination, premium wax or sealant and deep wheel cleaning.</p>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-5" data-en="Cars / Trucks & SUVs" data-es="Autos / Camionetas y SUVs">Cars / Trucks & SUVs</p>
+                </article>
 
-                <div class="glass-panel p-8 rounded-2xl space-y-6 border-t-2 border-red-600 bg-zinc-900/20">
-                    <h3 class="text-xl font-extrabold uppercase tracking-tight heading-font text-white flex items-center justify-between">
-                        <span data-en="Combo Packs" data-es="Paquetes Combinados">Combo Packs</span>
-                        <span class="text-[9px] bg-red-600 text-white font-black px-2 py-0.5 rounded">BEST VALUE</span>
-                    </h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="border-b border-zinc-800 pb-3"><div class="flex justify-between font-bold text-white"><span>Basic Combo</span> <span class="text-red-500 font-extrabold">Cars $120 / Trucks $140</span></div><p class="text-xs text-zinc-500 mt-1">Basic Interior + Basic Exterior combined wash.</p></div>
-                        <div class="border-b border-zinc-800 pb-3"><div class="flex justify-between font-bold text-white"><span>Popular Combo</span> <span class="text-red-500 font-extrabold">Cars $180 / Trucks $200</span></div><p class="text-xs text-zinc-500 mt-1">Deep Interior detailing paired with standard hand wax protection.</p></div>
-                        <div><div class="flex justify-between font-bold text-white"><span>Premium Full Detail</span> <span class="text-red-500 font-extrabold">Cars $350 / Trucks $390</span></div><p class="text-xs text-zinc-500 mt-1">Full premium interior extraction paired with elite exterior clay bar decontamination.</p></div>
+                <article class="service-card p-7">
+                    <div class="flex items-center justify-between gap-4 mb-5">
+                        <h3 class="text-2xl font-extrabold uppercase heading-font text-white" data-en="Combo Packages" data-es="Paquetes Combinados">Combo Packages</h3>
+                        <span class="text-[9px] bg-red-600/15 border border-red-500/25 text-red-400 px-2 py-1 rounded font-black" data-en="BEST VALUE" data-es="MEJOR VALOR">BEST VALUE</span>
                     </div>
-                </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Basic Combo" data-es="Combo Básico">Basic Combo</span><span class="service-price">$120 / $140</span></div>
+                        <p class="text-xs text-zinc-500 mt-2" data-en="Basic Interior + Basic Exterior." data-es="Interior Básico + Exterior Básico.">Basic Interior + Basic Exterior.</p>
+                    </div>
+                    <div class="service-row py-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Popular Combo" data-es="Combo Popular">Popular Combo</span><span class="service-price">$180 / $200</span></div>
+                        <p class="text-xs text-zinc-500 mt-2" data-en="Deep Interior + Standard Exterior." data-es="Interior Profundo + Exterior Estándar.">Deep Interior + Standard Exterior.</p>
+                    </div>
+                    <div class="service-row pt-4">
+                        <div class="flex justify-between gap-4"><span class="font-bold text-sm" data-en="Premium Full Detail" data-es="Detallado Premium Completo">Premium Full Detail</span><span class="service-price">$350 / $390</span></div>
+                        <p class="text-xs text-zinc-500 mt-2" data-en="Premium Interior + Premium Exterior." data-es="Interior Premium + Exterior Premium.">Premium Interior + Premium Exterior.</p>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-5" data-en="Cars / Trucks & SUVs" data-es="Autos / Camionetas y SUVs">Cars / Trucks & SUVs</p>
+                </article>
             </div>
         </div>
     </section>
@@ -263,8 +545,8 @@
     <section id="package-builder" class="py-24 bg-black/60 relative border-t border-zinc-900 z-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight uppercase heading-font text-white" data-en="Build Your Own Package" data-es="Construye Tu Propio Paquete">Build Your Own Package</h2>
-                <p class="text-zinc-500 text-sm" data-en="Select your vehicle layout size, customize base combo options, and layer in fluids and mechanical upgrades cleanly." data-es="Selecciona el tamaño del vehículo, personaliza opciones base y añade servicios mecánicos de manera limpia."></p>
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight uppercase heading-font text-white" data-en="Build Your Own Package" data-es="Arma Tu Propio Paquete">Build Your Own Package</h2>
+                <p class="text-zinc-500 text-sm" data-en="Choose your vehicle size and detail package, then add only the extras you need. Your estimate updates instantly." data-es="Elige el tamaño de tu vehículo y el paquete de detallado; después agrega solo los extras que necesites. El estimado se actualiza al instante.">Choose your vehicle size and detail package, then add only the extras you need. Your estimate updates instantly.</p>
             </div>
 
             <div class="glass-panel rounded-2xl overflow-hidden border border-zinc-800 grid grid-cols-1 lg:grid-cols-12 shadow-2xl">
@@ -272,13 +554,13 @@
                 <div class="lg:col-span-7 p-6 sm:p-8 space-y-8 bg-zinc-950/30">
                     
                     <div class="space-y-3">
-                        <label class="block text-xs font-bold tracking-wider text-zinc-400 uppercase" data-en="1. Select Vehicle Size" data-es="1. Selecciona el Tamaño del Vehículo">1. Select Vehicle Size</label>
+                        <label class="block text-xs font-bold tracking-wider text-zinc-400 uppercase" data-en="1. Select Vehicle Size" data-es="1. Selecciona el Tamaño de Tu Vehículo">1. Select Vehicle Size</label>
                         <div class="grid grid-cols-2 gap-3 p-1 bg-zinc-900/60 rounded-xl border border-zinc-800">
                             <button id="classCar" class="py-3 rounded-lg font-extrabold text-xs uppercase tracking-wider transition-all bg-red-600 text-white shadow-md cursor-pointer">
                                 <i class="fa-solid fa-car mr-2"></i> <span data-en="Standard Car" data-es="Auto Estándar">Standard Car</span>
                             </button>
                             <button id="classTruck" class="py-3 rounded-lg font-extrabold text-xs uppercase tracking-wider transition-all text-zinc-500 hover:text-white cursor-pointer">
-                                <i class="fa-solid fa-truck-pickup mr-2"></i> <span data-en="Truck / SUV / Van" data-es="Troca / SUV / Van">Truck / SUV / Van</span>
+                                <i class="fa-solid fa-truck-pickup mr-2"></i> <span data-en="Truck / SUV / Van" data-es="Camioneta / SUV / Van">Truck / SUV / Van</span>
                             </button>
                         </div>
                     </div>
@@ -288,45 +570,45 @@
                         <div class="space-y-2">
                             <label class="flex items-center gap-4 p-4 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-xl border border-zinc-800/60 cursor-pointer select-none transition-all">
                                 <input type="radio" name="masterComboDeck" value="120" data-truck="140" class="master-radio w-4 h-4 accent-red-600">
-                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-zinc-200">Basic Combo Pack</span><span class="text-red-500 font-extrabold font-mono text-sm combo-price-lbl">$120</span></div>
+                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-zinc-200" data-en="Basic Combo Pack" data-es="Paquete Combo Básico">Basic Combo Pack</span><span class="text-red-500 font-extrabold font-mono text-sm combo-price-lbl">$120</span></div>
                             </label>
                             <label class="flex items-center gap-4 p-4 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-xl border border-red-900/20 cursor-pointer select-none transition-all">
                                 <input type="radio" name="masterComboDeck" value="180" data-truck="200" checked class="master-radio w-4 h-4 accent-red-600">
-                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-white flex items-center gap-2">Popular Combo Pack <span class="bg-red-600 text-white text-[7px] font-black px-1.5 rounded uppercase">Most Popular</span></span><span class="text-red-400 font-extrabold font-mono text-sm combo-price-lbl">$180</span></div>
+                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-white flex items-center gap-2"><span data-en="Popular Combo Pack" data-es="Paquete Combo Popular">Popular Combo Pack</span> <span class="bg-red-600 text-white text-[7px] font-black px-1.5 rounded uppercase" data-en="Most Popular" data-es="Más Popular">Most Popular</span></span><span class="text-red-400 font-extrabold font-mono text-sm combo-price-lbl">$180</span></div>
                             </label>
                             <label class="flex items-center gap-4 p-4 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-xl border border-zinc-800/60 cursor-pointer select-none transition-all">
                                 <input type="radio" name="masterComboDeck" value="350" data-truck="390" class="master-radio w-4 h-4 accent-red-600">
-                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-zinc-200">Premium Full Detail Pack</span><span class="text-red-500 font-extrabold font-mono text-sm combo-price-lbl">$350</span></div>
+                                <div class="flex-1 flex justify-between items-center"><span class="font-bold text-sm text-zinc-200" data-en="Premium Full Detail Pack" data-es="Paquete de Detallado Premium Completo">Premium Full Detail Pack</span><span class="text-red-500 font-extrabold font-mono text-sm combo-price-lbl">$350</span></div>
                             </label>
                         </div>
                     </div>
 
                     <div class="space-y-3">
-                        <label class="block text-xs font-bold tracking-wider text-zinc-400 uppercase" data-en="3. Add Mechanical Maintenance & Pro Upgrades" data-es="3. Añade Mantenimiento Mecánico y Mejoras">3. Add Mechanical Maintenance & Pro Upgrades</label>
+                        <label class="block text-xs font-bold tracking-wider text-zinc-400 uppercase" data-en="3. Add Maintenance & Detail Upgrades" data-es="3. Agrega Mantenimiento y Mejoras de Detallado">3. Add Mechanical Maintenance & Pro Upgrades</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="45" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Standard Oil Change Labor" data-es="Mano de Obra Cambio de Aceite">Standard Oil Change Labor</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="45" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Standard Oil Change Labor" data-es="Mano de Obra: Cambio de Aceite Estándar">Standard Oil Change Labor</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$45</span>
                             </label>
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="25" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Tire Rotation Add-on" data-es="Rotación de Llantas Incluida">Tire Rotation Add-on</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="25" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Tire Rotation Add-on" data-es="Rotación de Llantas (Adicional)">Tire Rotation Add-on</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$25</span>
                             </label>
                             
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="30" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Engine Bay Detailing" data-es="Limpieza de Motor">Engine Bay Detailing</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="30" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Engine Bay Detailing" data-es="Detallado del Compartimiento del Motor">Engine Bay Detailing</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$30</span>
                             </label>
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="35" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Headlight Shield Restoration" data-es="Restauración de Faros">Headlight Restoration</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="35" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Headlight Restoration" data-es="Restauración de Faros">Headlight Restoration</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$35</span>
                             </label>
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="40" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Pet Hair Deep Extraction" data-es="Remoción de Pelo de Mascota">Pet Hair Extraction</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="40" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Pet Hair Deep Extraction" data-es="Extracción Profunda de Pelo de Mascota">Pet Hair Extraction</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$40</span>
                             </label>
                             <label class="flex items-center justify-between p-3.5 bg-zinc-900/30 hover:bg-zinc-900/80 rounded-xl border border-zinc-800/60 cursor-pointer transition-all">
-                                <div class="flex items-center gap-3"><input type="checkbox" value="50" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Advanced Odor Extraction" data-es="Tratamiento de Olor Avanzado">Odor Extraction</span></div>
+                                <div class="flex items-center gap-3"><input type="checkbox" value="50" class="master-addon-cb w-4 h-4 accent-red-600"><span class="text-xs font-bold text-zinc-300" data-en="Advanced Odor Extraction" data-es="Eliminación Avanzada de Olores">Odor Extraction</span></div>
                                 <span class="text-xs font-extrabold text-red-500 font-mono">+$50</span>
                             </label>
                         </div>
@@ -341,7 +623,7 @@
 
                         <div class="space-y-3 text-xs font-semibold text-zinc-400">
                             <div class="flex justify-between"><span data-en="Selected Base Combo" data-es="Combo Base Seleccionado">Selected Base Combo</span><span id="mxBaseOut" class="text-white font-mono">$180</span></div>
-                            <div class="flex justify-between"><span data-en="Maintenance & Upgrades Add-ons" data-es="Adicionales Seleccionados">Maintenance & Upgrades Add-ons</span><span id="mxAddonOut" class="text-white font-mono">$0</span></div>
+                            <div class="flex justify-between"><span data-en="Maintenance & Upgrade Add-ons" data-es="Mantenimiento y Mejoras Adicionales">Maintenance & Upgrades Add-ons</span><span id="mxAddonOut" class="text-white font-mono">$0</span></div>
                             <div class="pt-3 flex justify-between items-baseline border-t border-zinc-800">
                                 <span class="text-xs font-extrabold text-white uppercase" data-en="Estimated Package Total" data-es="Total Estimado del Paquete">Estimated Package Total</span>
                                 <span id="mxTotalOut" class="text-4xl font-extrabold text-red-500 heading-font font-mono">$180</span>
@@ -357,7 +639,7 @@
                             <input type="hidden" id="formSpecClass" name="Selected Vehicle Size" value="Car">
                             <input type="hidden" id="formSpecFinalQuote" name="Calculated Estimate Value" value="$180">
 
-                            <label class="block text-[9px] font-bold tracking-wider text-zinc-500 uppercase" data-en="Submit Parameters to Jerred Guerra" data-es="Enviar Especificaciones a Jerred Guerra">Submit Parameters to Jerred Guerra</label>
+                            <label class="block text-[9px] font-bold tracking-wider text-zinc-500 uppercase" data-en="Send Your Request to Jerred" data-es="Envía Tu Solicitud a Jerred">Submit Parameters to Jerred Guerra</label>
                             
                             <input type="text" name="Client Name" required placeholder="Your Full Name" data-en-placeholder="Your Full Name" data-es-placeholder="Tu Nombre Completo" class="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-600 outline-none transition-all">
                             
@@ -368,15 +650,15 @@
                             <input type="text" name="Vehicle Parameters" required placeholder="Vehicle Year, Make, & Model" data-en-placeholder="Vehicle Year, Make, & Model" data-es-placeholder="Año, Marca y Modelo del Vehículo" class="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-600 outline-none transition-all">
 
                             <button type="submit" class="w-full text-center bg-white text-black hover:bg-zinc-200 font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all cursor-pointer block mt-2">
-                                <span data-en="Email Appraised Quote To Jerred" data-es="Enviar Presupuesto por Correo">Email Appraised Quote To Jerred</span>
+                                <span data-en="Email This Request To Jerred" data-es="Enviar Esta Solicitud a Jerred">Email Appraised Quote To Jerred</span>
                             </button>
 
                             <div class="grid grid-cols-2 gap-2 pt-1">
-                                <a href="tel:90340119361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
-                                    <i class="fa-solid fa-phone text-red-500 mr-1.5"></i> Call Jerred
+                                <a href="tel:9034019361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
+                                    <i class="fa-solid fa-phone text-red-500 mr-1.5"></i><span data-en="Call Jerred" data-es="Llamar a Jerred">Call Jerred</span>
                                 </a>
-                                <a id="smsDirectLink" href="sms:+190340119361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
-                                    <i class="fa-solid fa-comment-sms text-green-500 mr-1.5"></i> Text Quote
+                                <a id="smsDirectLink" href="sms:+19034019361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
+                                    <i class="fa-solid fa-comment-sms text-green-500 mr-1.5"></i><span data-en="Text Request" data-es="Enviar Solicitud por Texto">Text Request</span>
                                 </a>
                             </div>
                         </form>
@@ -415,7 +697,7 @@
                     <div class="space-y-7">
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <h3 class="text-2xl font-extrabold heading-font uppercase text-white leading-tight">Tex-Mex Oil & Shine Tee</h3>
+                                <h3 class="text-2xl font-extrabold heading-font uppercase text-white leading-tight" data-en="Tex-Mex Oil & Shine Tee" data-es="Playera Tex-Mex Oil & Shine">Tex-Mex Oil & Shine Tee</h3>
                                 <p class="text-xs text-zinc-500 mt-1" data-en="Premium soft cotton blend. Front + back print." data-es="Mezcla de algodón suave premium. Estampado frente y espalda.">Premium soft cotton blend. Front + back print.</p>
                             </div>
                             <span class="text-3xl font-extrabold text-red-500 heading-font font-mono shrink-0">$20</span>
@@ -473,13 +755,13 @@
 
                         <div class="grid grid-cols-2 gap-2">
                             <a id="merchTextBtn" href="#" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
-                                <i class="fa-solid fa-comment-sms text-green-500 mr-1.5"></i><span data-en="Text Order" data-es="Pedido por Texto">Text Order</span>
+                                <i class="fa-solid fa-comment-sms text-green-500 mr-1.5"></i><span data-en="Text Order" data-es="Pedir por Texto">Text Order</span>
                             </a>
-                            <a href="tel:90340119361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
-                                <i class="fa-solid fa-phone text-red-500 mr-1.5"></i> Call Jerred
+                            <a href="tel:9034019361" class="text-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 text-xs font-bold py-3 rounded-xl transition-all block">
+                                <i class="fa-solid fa-phone text-red-500 mr-1.5"></i><span data-en="Call Jerred" data-es="Llamar a Jerred">Call Jerred</span>
                             </a>
                         </div>
-                        <p class="text-[10px] text-zinc-600 text-center pt-1" data-en="Local pickup & delivery in the Paris, TX area. Jerred confirms availability and payment." data-es="Entrega y recogida local en el área de Paris, TX. Jerred confirma disponibilidad y pago.">Local pickup & delivery in the Paris, TX area. Jerred confirms availability and payment.</p>
+                        <p class="text-[10px] text-zinc-600 text-center pt-1" data-en="Local pickup & delivery in the Paris, TX area. Jerred confirms availability and payment." data-es="Entrega y recogida local en el área de Paris, TX. Jerred confirmará disponibilidad y forma de pago.">Local pickup & delivery in the Paris, TX area. Jerred confirms availability and payment.</p>
                     </form>
                 </div>
 
@@ -487,86 +769,219 @@
         </div>
     </section>
 
-    <footer class="bg-black border-t border-zinc-900 py-12 text-[10px] text-zinc-600 font-medium z-10 relative backdrop-blur-md">
+    <footer class="bg-black border-t border-white/5 py-12 text-[10px] text-zinc-600 font-medium z-10 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div class="text-center sm:text-left space-y-1">
-                <p class="text-xs font-bold text-zinc-400 heading-font uppercase tracking-wider">&copy; 2025 Tex-Mex Oil & Shine. All Rights Reserved.</p>
-                <p data-en="Founded and Operated by Jerred Guerra. Paris, Texas." data-es="Arquitectura de interfaz personalizada implementada para Jerred Guerra. Paris, Texas.">Founded and Operated by Jerred Guerra. Paris, Texas.</p>
+                <p class="text-xs font-bold text-zinc-400 heading-font uppercase tracking-wider">&copy; 2026 Tex-Mex Oil & Shine. <span data-en="All Rights Reserved." data-es="Todos los derechos reservados.">All Rights Reserved.</span></p>
+                <p data-en="Founded and operated by Jerred Guerra. Paris, Texas." data-es="Fundado y operado por Jerred Guerra. Paris, Texas.">Founded and operated by Jerred Guerra. Paris, Texas.</p>
             </div>
-            <div class="flex items-center gap-6 text-base">
-                <a href="https://facebook.com" target="https://www.facebook.com/share/1Gcf6uUc3r/?mibextid=wwXIfr" class="text-zinc-600 hover:text-white transition-colors"><i class="fa-brands fa-facebook"></i></a>
-                <a href="https://google.com" target="_blank" class="text-zinc-600 hover:text-white transition-colors"><i class="fa-brands fa-google"></i></a>
+            <div class="flex items-center gap-5">
+                <a href="https://www.facebook.com/share/1Gcf6uUc3r/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors" aria-label="Facebook"><i class="fa-brands fa-facebook text-base"></i><span class="text-[10px] font-bold uppercase tracking-wider">Facebook</span></a>
+                <a href="tel:9034019361" class="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors"><i class="fa-solid fa-phone text-red-500"></i><span>903.401.9361</span></a>
             </div>
         </div>
     </footer>
 
     <script>
-        // BACKGROUND CUSTOM DETAILING THEME PARTICLES SYSTEM (Water Droplets + Glint Flares Engine)
-        const canvas = document.getElementById('detailingCanvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
+        // ===================================================================
+        // HERO RAIN  ·  raindrop-fx (MIT) by SardineFish
+        // https://github.com/SardineFish/raindrop-fx
+        //
+        // The library owns the water. We own the framing, and we only own
+        // it in ONE place: paintFrame() cover-fits the photo around the
+        // --hero-fx / --hero-fy focal point read live off .hero-media, and
+        // hands the result to raindrop-fx as its background. Because the
+        // offscreen frame is already the exact size of the render target,
+        // the library's internal Cover pass is a no-op and the WebGL image
+        // lands pixel-identical to the CSS background underneath it.
+        // If WebGL2, the script, or the image is unavailable, the canvas
+        // simply never fades in and the CSS photo stays on screen.
+        // ===================================================================
+        (function initHeroRain() {
+            const media  = document.querySelector('.hero-media');
+            const canvas = document.getElementById('rainCanvas');
+            if (!media || !canvas) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+            // Raised: at 2.4M a 1600x900 hero on a 1.5x screen was rendering
+            // below its CSS size and getting upscaled, which read as extra blur.
+            const PIXEL_BUDGET = 3500000;
+            const frame  = document.createElement('canvas');
+            const fctx   = frame.getContext('2d');
+            const img    = new Image();
 
-        class DetailingParticle {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * canvas.height; 
+            let fx = null, raf = 0, lastT = 0, running = false, lastW = 0, lastH = 0;
+
+            // one place to look when the hero rain is not showing:
+            // open the console, or type  __heroRain  and press enter
+            window.__heroRain = { status: 'starting' };
+            function status(msg) {
+                window.__heroRain.status = msg;
+                if (msg !== 'running') console.warn('[hero rain] ' + msg);
             }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = -20;
-                this.size = Math.random() * 2 + 1; 
-                this.speed = Math.random() * 0.6 + 0.2; 
-                this.opacity = Math.random() * 0.25 + 0.05;
-                this.isGlint = Math.random() > 0.85; 
-                this.glintAngle = 0;
+
+            // the single source of truth for framing, shared with the CSS layer
+            function focalPoint() {
+                const cs = getComputedStyle(media);
+                const read = (name, fallback) => {
+                    const n = parseFloat(cs.getPropertyValue(name));
+                    return isNaN(n) ? fallback : n / 100;
+                };
+                return [read('--hero-fx', 50), read('--hero-fy', 50)];
             }
-            update() {
-                this.y += this.speed;
-                if (this.isGlint) {
-                    this.glintAngle += 0.02;
+
+            function renderSize() {
+                const r = media.getBoundingClientRect();
+                let dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+                let w = Math.max(1, Math.round(r.width  * dpr));
+                let h = Math.max(1, Math.round(r.height * dpr));
+                if (w * h > PIXEL_BUDGET) {
+                    const k = Math.sqrt(PIXEL_BUDGET / (w * h));
+                    w = Math.max(1, Math.round(w * k));
+                    h = Math.max(1, Math.round(h * k));
                 }
-                if (this.y > canvas.height + 20) {
-                    this.reset();
-                }
+                return [w, h];
             }
-            draw() {
-                ctx.beginPath();
-                if (this.isGlint) {
-                    let pulse = this.size * (1 + Math.sin(this.glintAngle) * 0.4);
-                    ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity * 1.5})`;
-                    ctx.arc(this.x, this.y, pulse, 0, Math.PI * 2);
-                    ctx.fill();
+
+            // Mirrors the CSS layer exactly. Two modes, matching --hero-fit:
+            //   cover  -> background-size: cover, positioned at fx/fy
+            //   height -> background-size: auto 100%, anchored right
+            function paintFrame(w, h) {
+                frame.width = w;
+                frame.height = h;
+                const iw = img.naturalWidth, ih = img.naturalHeight;
+                const cs = getComputedStyle(media);
+                const mode = cs.getPropertyValue('--hero-fit').trim();
+                let scale, x, y;
+                if (mode === 'height') {
+                    // device px per CSS px, so the nav inset converts correctly
+                    const k = h / Math.max(1, media.getBoundingClientRect().height);
+                    const top = (parseFloat(cs.getPropertyValue('--hero-top')) || 0) * k;
+                    scale = (h - top) / ih;
+                    x = (w - iw * scale) / 2;   // centred
+                    y = top;                    // bottom anchored below the nav
                 } else {
-                    ctx.fillStyle = `rgba(150, 180, 255, ${this.opacity})`;
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    const [ox, oy] = focalPoint();
+                    scale = Math.max(w / iw, h / ih);
+                    x = -(iw * scale - w) * ox;
+                    y = -(ih * scale - h) * oy;
                 }
+                fctx.fillStyle = '#050506';
+                fctx.fillRect(0, 0, w, h);
+                fctx.drawImage(img, x, y, iw * scale, ih * scale);
             }
-        }
 
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < 75; i++) {
-                particles.push(new DetailingParticle());
+            function tick(t) {
+                if (!running) return;
+                const dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 0.016;
+                lastT = t;
+                fx.update({ dt: dt, total: t / 1000 });
+                raf = requestAnimationFrame(tick);
             }
-        }
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animateParticles);
-        }
-        initParticles();
-        animateParticles();
+            function play()  { if (fx && !running) { running = true; lastT = 0; raf = requestAnimationFrame(tick); } }
+            function pause() { running = false; cancelAnimationFrame(raf); }
+
+            async function boot() {
+                if (typeof RaindropFX === 'undefined') {
+                    status('raindrop-fx.js did not load. Check the file sits in the repo root next to index.html.');
+                    return;
+                }
+                if (!document.createElement('canvas').getContext('webgl2')) {
+                    status('this browser has no WebGL2, so the rain is off. The photo is unaffected.');
+                    return;
+                }
+                const [w, h] = renderSize();
+                lastW = w; lastH = h;
+                canvas.width = w; canvas.height = h;
+                paintFrame(w, h);
+
+                try {
+                    fx = new RaindropFX({
+                        canvas: canvas,
+                        background: frame,
+                        // fewer, fatter, slower drops: a parked truck in steady
+                        // rain, not a windshield at highway speed
+                        spawnSize: [44, 96],
+                        spawnInterval: [0.16, 0.36],
+                        spawnLimit: 850,
+                        gravity: 1650,
+                        slipRate: 0.2,
+                        evaporate: 14,
+                        trailDropDensity: 0.16,
+                        trailDistance: [26, 42],
+                        // the fine droplet layer is what was hazing the photo:
+                        // every speck refracts through the blurred copy, and they
+                        // build up between passing drops. Thinned right down.
+                        dropletsPerSeconds: 70,
+                        dropletSize: [6, 16],
+                        // mist off and blur down: the library draws the SHARP
+                        // photo as the base and only bends light inside the
+                        // drops themselves, so the truck, the sign and the
+                        // building lights stay exactly as shot. Mist is what
+                        // fogs the whole picture, which is not what we want.
+                        backgroundBlurSteps: 1,
+                        mist: false,
+                        mistBlurStep: 2,
+                        backgroundWrapMode: 'clamp',
+                        refractBase: 0.42,
+                        refractScale: 0.62,
+                        raindropLightPos: [-1, 1, 2, 0],
+                        raindropDiffuseLight: [0.22, 0.22, 0.25],
+                        raindropSpecularLight: [0, 0, 0],
+                        raindropLightBump: 0.6,
+                        raindropShadowOffset: 0.75
+                    });
+                    await fx.start();
+                    fx.stop();                      // hand the clock to our own loop
+                    await fx.setBackground(frame);
+                    canvas.classList.add('is-live');
+                } catch (err) {
+                    fx = null;
+                    status('raindrop-fx failed to start: ' + err);
+                    return;
+                }
+                status('running');
+
+                if ('IntersectionObserver' in window) {
+                    new IntersectionObserver(function (entries) {
+                        entries[0].isIntersecting ? play() : pause();
+                    }, { threshold: 0 }).observe(media);
+                } else {
+                    play();
+                }
+                document.addEventListener('visibilitychange', function () {
+                    document.hidden ? pause() : play();
+                });
+                play();
+            }
+
+            let resizeTimer = 0;
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(async function () {
+                    if (!fx) return;
+                    const [w, h] = renderSize();
+                    if (w === lastW && h === lastH) return;   // ignore mobile URL-bar jitter
+                    lastW = w; lastH = h;
+                    canvas.width = w; canvas.height = h;
+                    fx.resize(w, h);
+                    paintFrame(w, h);
+                    await fx.setBackground(frame);
+                }, 200);
+            }, { passive: true });
+
+            img.decoding = 'async';
+            img.onerror = function () {
+                status('hero-rain-bg.jpg did not load. Check the file sits in the repo root.');
+            };
+            img.onload = function () {
+                // belt and braces: even if the library tag ever goes back to
+                // being deferred or async, waiting for load means it is there
+                if (document.readyState === 'complete') boot();
+                else window.addEventListener('load', boot, { once: true });
+            };
+            img.src = 'hero-rain-bg.jpg';
+        })();
 
 
         // APPLICATION WORKSPACE STATE INTERFACE LOGIC
@@ -595,11 +1010,12 @@
 
         function triggerLanguageState(lang) {
             activeLanguage = lang;
+            document.documentElement.lang = lang;
 
             // Toggle visual state
             if (lang === 'es') {
                 document.body.classList.replace('lang-en', 'lang-es');
-                langKnob.style.transform = 'translateX(68px)';
+                langKnob.style.transform = 'translateX(61px)';
                 langKnob.classList.replace('bg-red-600', 'bg-green-600');
                 langLabelEs.classList.replace('text-zinc-500', 'text-white');
                 langLabelEn.classList.replace('text-white', 'text-zinc-500');
@@ -669,14 +1085,14 @@
             mxAddonOut.textContent = `$${runningAddonTotal}`;
             mxTotalOut.textContent = `$${overallSumTotal}`;
 
-            formSpecClass.value = activeFrameClass === 'car' ? 'Standard Car' : 'Truck / SUV / Van';
+            formSpecClass.value = activeFrameClass === 'car' ? (activeLanguage === 'es' ? 'Auto Estándar' : 'Standard Car') : (activeLanguage === 'es' ? 'Camioneta / SUV / Van' : 'Truck / SUV / Van');
             formSpecFinalQuote.value = `$${overallSumTotal}`;
 
-            const sizingLabel = activeFrameClass === 'car' ? 'Car' : 'Truck/SUV';
+            const sizingLabel = activeFrameClass === 'car' ? (activeLanguage === 'es' ? 'auto' : 'car') : (activeLanguage === 'es' ? 'camioneta/SUV' : 'truck/SUV');
             const smsBody = activeLanguage === 'en'
                 ? `Hi Jerred, I configured a custom package online for my ${sizingLabel}. Estimated total is $${overallSumTotal}. Let's lock in a schedule.`
-                : `Hola Jerred, configuré un paquete personalizado en línea para mi ${sizingLabel}. El total estimado es $${overallSumTotal}. Coordinemos fecha.`;
-            smsDirectLink.href = `sms:+190340119361?body=${encodeURIComponent(smsBody)}`;
+                : `Hola Jerred, armé un paquete personalizado en línea para mi ${sizingLabel}. El total estimado es $${overallSumTotal}. ¿Podemos agendar una fecha?`;
+            smsDirectLink.href = `sms:+19034019361?body=${encodeURIComponent(smsBody)}`;
         }
 
         langToggle.addEventListener('click', () => {
@@ -731,7 +1147,7 @@
           },
         };
 
-        const JERRED_SMS = '+190340119361';
+        const JERRED_SMS = '+19034019361';
         const JERRED_EMAIL = 'jerred.guerra54@gmail.com';
 
         let merchColorIdx = 0;
