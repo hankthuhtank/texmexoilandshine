@@ -538,7 +538,53 @@
                 linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
             background-size: 32px 32px;
         }
-        #services, #package-builder, #shop { scroll-margin-top: 90px; }
+        /* ===== GOOGLE REVIEWS ===== */
+        #services, #package-builder, #reviews, #shop { scroll-margin-top: 90px; }
+        .google-review-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .google-review-card {
+            min-height: 210px;
+            padding: 1.4rem;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(220,38,38,.08), transparent 42%),
+                linear-gradient(180deg, rgba(18,18,21,.96), rgba(9,9,11,.96));
+            border: 1px solid rgba(255,255,255,.09);
+            box-shadow: 0 18px 55px rgba(0,0,0,.24);
+            animation: reviewCardIn .38s ease both;
+        }
+        .google-review-card:nth-child(2) { animation-delay: .06s; }
+        .google-review-card:nth-child(3) { animation-delay: .12s; }
+        .google-review-name {
+            color: #fff;
+            font-size: .98rem;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+        .google-review-stars {
+            margin-top: .55rem;
+            color: #fbbc04;
+            font-size: 1rem;
+            line-height: 1;
+            letter-spacing: .08em;
+        }
+        .google-review-text {
+            margin-top: 1rem;
+            color: #d4d4d8;
+            font-size: .9rem;
+            line-height: 1.65;
+        }
+        @keyframes reviewCardIn {
+            from { opacity: 0; transform: translateY(7px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 860px) {
+            .google-review-grid { grid-template-columns: 1fr; }
+            .google-review-card { min-height: 0; }
+        }
         input, button, a { -webkit-tap-highlight-color: transparent; }
         input:focus-visible, button:focus-visible, a:focus-visible {
             outline: 2px solid rgba(239,68,68,.9);
@@ -811,6 +857,124 @@
             </div>
         </div>
     </section>
+
+    <!-- =================== GOOGLE REVIEWS =================== -->
+    <section id="reviews" class="py-24 relative border-t border-zinc-900 z-10 bg-zinc-950/30">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+                <span class="inline-block text-[10px] font-extrabold tracking-[0.25em] text-red-500 uppercase" data-en="Google Reviews" data-es="Reseñas de Google">Google Reviews</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight uppercase heading-font text-white" data-en="What Customers Are Saying" data-es="Lo Que Dicen Nuestros Clientes">What Customers Are Saying</h2>
+                <p class="text-zinc-500 text-sm" data-en="Real feedback from Tex-Mex Oil & Shine customers." data-es="Opiniones reales de clientes de Tex-Mex Oil & Shine.">Real feedback from Tex-Mex Oil & Shine customers.</p>
+            </div>
+
+            <div id="googleReviewGrid" class="google-review-grid" aria-label="Customer reviews"></div>
+        </div>
+    </section>
+
+    <script>
+    (() => {
+        const reviews = [
+            {
+                name: "Chuntarria Herrin",
+                review: "I had a great experience with this auto detailing service! My car looked absolutely amazing. Clean and like new again. The attention to detail and quality of work really stood out. Highly recommend them if you want your car looking its best!"
+            },
+            {
+                name: "Bobby Miller",
+                review: "Excellent customer service!"
+            },
+            {
+                name: "Omar Alvarez",
+                review: "Trustworthy, punctual and professional! My car looked brand new after he was done. Highly recommended!"
+            },
+            {
+                name: "Ny'tresha Chester",
+                review: "Jerred Guerra is absolutely OUTSTANDING.,thank you for your services"
+            },
+            {
+                name: "MaryBeth Henry",
+                review: "Can’t give Jerred enough praise for helping me out with a flat tire!! This man worked all night pulling an 12 hour shift, and still took the time to plug my tire the next morning!!!"
+            },
+            {
+                name: "Jayleyn Keele",
+                review: "Jared detailed the inside and outside of my Jeep and he did an AMAZING job! My car has gone through it with two children when he finished you couldn’t tell that have two kids in the back. Huge thank you!"
+            },
+            {
+                name: "Cynthia",
+                review: "My ranch truck needed a good detailing! Tex Mex oil & shine came through and did a fantastic job,will be a returning customer! Highly recommend them for your truck/car cleaning needs! Love their attention to detail."
+            },
+            {
+                name: "Neno Sims",
+                review: "Shows Great character doesnt mind helping other very professional and always have great advice most def a good ran business"
+            },
+            {
+                name: "Isabella Pendleton",
+                review: "The Best detailing job hands down. Jerred did a fantastic job and even left a gift on my steering wheel. What a treat. Will be using him for now on."
+            },
+            {
+                name: "Nysha Mason",
+                review: "1st time gettin my truck detail since I bought it and he made it look brand new"
+            },
+            {
+                name: "April Horton",
+                review: "He came out and did a really great job on my jeep, getting white fur out of black carpet was a challenge but he worked and made it so much better. I would definitely recommend and will use him in the future!"
+            },
+            {
+                name: "I Gar",
+                review: "Awesome service and an awesome guy, does amazing work and the prices are even better. Dont wait book your service today 🤙."
+            },
+            {
+                name: "Cory Battle",
+                review: "Best detailer I’ve had so far. Drove all the way from Dallas."
+            },
+            {
+                name: "Angelia Washington",
+                review: "Pays attention to detail and always delivers professional service! Always consistent!"
+            },
+            {
+                name: "Caleb Keele",
+                review: "Excellent service drove to my house brought his own supplies did my oil change and detailed my wife’s car!"
+            }
+        ];
+
+        const grid = document.getElementById("googleReviewGrid");
+        if (!grid) return;
+
+        let start = 0;
+
+        function buildCard(item) {
+            const card = document.createElement("article");
+            card.className = "google-review-card";
+
+            const name = document.createElement("h3");
+            name.className = "google-review-name";
+            name.textContent = item.name;
+
+            const stars = document.createElement("div");
+            stars.className = "google-review-stars";
+            stars.setAttribute("aria-label", "5 out of 5 stars");
+            stars.textContent = "★★★★★";
+
+            const review = document.createElement("p");
+            review.className = "google-review-text";
+            review.textContent = item.review;
+
+            card.append(name, stars, review);
+            return card;
+        }
+
+        function renderReviews() {
+            const cards = [];
+            for (let i = 0; i < 3; i++) {
+                cards.push(buildCard(reviews[(start + i) % reviews.length]));
+            }
+            grid.replaceChildren(...cards);
+            start = (start + 3) % reviews.length;
+        }
+
+        renderReviews();
+        setInterval(renderReviews, 7000);
+    })();
+    </script>
 
     <!-- =================== MERCH / SHIRT SHOP =================== -->
     <section id="shop" class="py-24 bg-zinc-950/40 relative border-t border-zinc-900 z-10 backdrop-blur-sm">
